@@ -19,13 +19,18 @@ export default {
         },
         { loggedInUser },
       ) => {
-        const { filename, createReadStream } = await avatar;
-        const readStream = createReadStream();
-        // local 폴더에 파일을 저장하기 위한 방식 aws 사용시 필요 없음
-        const writeStream = fs.createWriteStream(
-          process.cwd() + "/uploads/" + filename,
-        );
-        readStream.pipe(writeStream);
+        let avatarUrl = null;
+        if (avatar) {
+          const { filename, createReadStream } = await avatar;
+          const newFilename = `${loggedInUser.id}-${Date.now()}-${filename}`;
+          const readStream = createReadStream();
+          // local 폴더에 파일을 저장하기 위한 방식 aws 사용시 필요 없음
+          const writeStream = fs.createWriteStream(
+            process.cwd() + "/uploads/" + newFilename,
+          );
+          readStream.pipe(writeStream);
+          avatarUrl = `http://localhost:4000/static/${newFilename}`;
+        }
 
         let uglyPassword = null;
         if (newPassword) {
@@ -41,6 +46,7 @@ export default {
             email,
             bio,
             ...(uglyPassword && { password: uglyPassword }),
+            ...(avatarUrl && { avatar: avatarUrl }),
           },
         });
 
